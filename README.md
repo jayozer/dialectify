@@ -4,6 +4,7 @@ Convert SQL code from one dialect to another using ChatGPT API and Streamlit
 
 to do:
 - Use your own API_KEY for ChatGPT API.
+- Streamlit app, incl repo updates.
 - Check for any issues/ validate code for the given dialect. Maybe detect dialect should be removed to catch validation mistakes
 - Encode / decode before sending to openai to mask any business non public info (fields and table names)
 - Toggles for replace any char (such as #) with any char (such as _)
