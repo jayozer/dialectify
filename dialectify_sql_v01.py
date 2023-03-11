@@ -38,15 +38,17 @@ def sql_dialectify(to_sql, sql):
 # Define the Streamlit app using the st package:
 
 # Set the app title
-st.title("SQL Dialect Converter")
+st.title("Dialectify SQL")
 
 # Create the input boxes for the SQL code and the SQL dialects
+openai.api_key = st.text_input("Enter API Key:")
 sql = st.text_area("Enter SQL Code")
 #from_sql = st.selectbox("From SQL:", ["MS SQL Server", "MySQL", "Oracle", "PostgreSQL", "SQLite", "Snowflake"])
 to_sql = st.selectbox("To SQL:", ["MS SQL Server", "MySQL", "Oracle Database", "PostgreSQL", "SQLite", "Snowflake"])
 
 # Add a button to trigger the SQL dialect conversion
-if st.button("Convert"):
+if openai.api_key and st.button("Convert"):
+    st.write("Converting the SQL Code...")
     # Convert the SQL dialect using the OpenAI API
     converted_sql = sql_dialectify(to_sql, sql)
     # Display the converted SQL code
