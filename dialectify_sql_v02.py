@@ -92,6 +92,8 @@ def sql_masking(identifiers, sql):
     return sql, word_map
 
 
+
+
 # Open Ai piece
 
 def sql_dialectify(to_sql, masked_sql):
@@ -156,6 +158,11 @@ def append_view_to_tables(sql, tables, add_view_suffix):
     return updated_sql
 
 # Define Streamlit app
+
+# Declare word_map and masked_converted_sql as global variables
+word_map = {}
+masked_converted_sql = ""
+
 def app():
     # Set the app title
     st.title("Dialectify SQL")
@@ -165,39 +172,25 @@ def app():
     sql = st.text_area("Enter SQL Code")
     to_sql = st.selectbox("To SQL:", ["MS SQL Server", "MySQL", "Oracle Database", "PostgreSQL", "SQLite", "Snowflake"])
 
-
-    # Add _view
-    add_view_suffix = st.checkbox("Append '_view' to table names")
-
-    # Extract list of field names from SQL code
-    if st.button("Extract"):
-        st.write("Extracting the list of field names from your SQL Code...")
-        list_of_fields = get_identifiers(sql)
-        st.text_area("Extracted list of field names", list_of_fields)
-
-    # Mask SQL code
-    if st.button("Mask"):
-        st.write("Masking your SQL Code...")
-        list_of_fields = get_identifiers(sql)
-        masked_sql, word_map = sql_masking(list_of_fields, sql)
-        st.text_area("Encrypted SQL", masked_sql)
-
     # Convert SQL dialect
     if st.button("Convert"):
         st.write("Converting your SQL Code...")
         list_of_fields = get_identifiers(sql)
         masked_sql, word_map = sql_masking(list_of_fields, sql)
         masked_converted_sql = sql_dialectify(to_sql, masked_sql)
-        st.text_area("Converted SQL Code", masked_converted_sql)
+        st.text(masked_converted_sql)
 
-    # Demask SQL code
+    # Demask SQL code ( No more running the same functions again, use from above)
     if st.button("DeMask"):
         st.write("Demasking your SQL Code...")
         list_of_fields = get_identifiers(sql)
         masked_sql, word_map = sql_masking(list_of_fields, sql)
         masked_converted_sql = sql_dialectify(to_sql, masked_sql)
         demasked_sql = demasking(word_map, masked_converted_sql)
-        st.code("Decrypted SQL", demasked_sql)
+        st.text(demasked_sql)
+    
+    # Append _view
+    add_view_suffix = st.checkbox("Append '_view' to table names")
 
     # Process SQL code
     if st.button("Process SQL"):
@@ -209,176 +202,9 @@ def app():
         tables = extract_tables(sql)
         updated_sql = append_view_to_tables(demasked_sql, tables, add_view_suffix)
         st.subheader("Original SQL:")
-        st.code(sql)
+        st.code(sql, language="sql")
         st.subheader("Updated SQL:")
-        st.code(updated_sql)
-        
-# st.title("Dialectify SQL")
-# openai.api_key = st.text_input("Enter API Key:")
-# sql = st.text_area("Enter SQL Code")
+        st.code(updated_sql, language="sql")
 
-# if st.button("Extract", key="1"):
-#     st.write("Extracting the list of field names from your SQL Code...")
-
-#     list_of_fields = get_identifiers(sql)
-
-#     st.text_area("Extracted list of field names", list_of_fields)
-
-# if st.button("Mask", key="2"):
-#     st.write("Extracting the list of field names from your SQL Code...")
-#     list_of_fields = get_identifiers(sql)
-#     masked_sql, word_map  = sql_masking(list_of_fields, sql)
-
-#     st.text_area("Encrypted SQL", masked_sql)
-
-# to_sql = st.selectbox("To SQL:", ["MS SQL Server", "MySQL", "Oracle Database", "PostgreSQL", "SQLite", "Snowflake"])
-
-# if st.button("Convert"):
-#     st.write("Converting the SQL Code...")
-
-#     list_of_fields = get_identifiers(sql)
-#     masked_sql, word_map  = sql_masking(list_of_fields, sql)
-#     masked_converted_sql = sql_dialectify(to_sql, masked_sql)
-
-#     st.text_area("Converted SQL Code", masked_converted_sql)
-
-# if st.button("DeMask", key="5"):
-#     st.write("De mAsking for further processing SQL Code...")
-    
-#     list_of_fields = get_identifiers(sql)
-#     masked_sql, word_map  = sql_masking(list_of_fields, sql)
-#     masked_converted_sql = sql_dialectify(to_sql, masked_sql)
-#     demasked_sql = demasking(word_map, masked_converted_sql)
-
-#     st.code("Demasked SQL", demasked_sql)
-
-# add_view_suffix = st.checkbox("Append '_view' to table names")
-
-
-
-# #-----------Above works, below does not.
-# if st.button("Process SQL",  key="3"): 
-
-#     list_of_fields = get_identifiers(sql)
-#     masked_sql, word_map  = sql_masking(list_of_fields, sql)
-#     masked_converted_sql = sql_dialectify(to_sql, masked_sql)
-#     demasked_sql = demasking(word_map, masked_converted_sql)
-
-#     tables = extract_tables(demasked_sql)
-#     updated_sql = append_view_to_tables(sql, tables, add_view_suffix)
-
-    
-
-#     st.subheader("Original SQL:")
-#     st.code(sql)
-
-#     st.subheader("Updated SQL:")
-#     st.code(updated_sql)
-
-# # Define the Streamlit app using the st package:
-
-# # Set the app title
-# st.title("Dialectify SQL")
-
-# # Create the input boxes for the SQL code and the SQL dialects
-# openai.api_key = st.text_input("Enter API Key:")
-# sql = st.text_area("Enter SQL Code")
-
-# # TEST: Add a button to trigger the SQL dialect conversion
-# if openai.api_key and st.button("Extract", key="1"):
-#     st.write("Extracting the list of field names from your SQL Code...")
-
-#     list_of_fields = get_identifiers(sql)
-
-#     # Display the converted SQL code
-#     st.text_area("Extracted list of field names", list_of_fields)
-
-# # TEST: Add a button to show masked sql before it is sent to Openai
-# if openai.api_key and st.button("Mask", key="2"):
-#     st.write("Extracting the list of field names from your SQL Code...")
-    
-#     list_of_fields = get_identifiers(sql)
-#     masked_sql, word_map  = sql_masking(list_of_fields, sql)
-
-#     # Display the converted SQL code
-#     #st.text_area("Encryted SQL", masked_sql + str(list_of_fields))
-#     st.text_area("Encrypted SQL", masked_sql)
-
-
-
-# #from_sql = st.selectbox("From SQL:", ["MS SQL Server", "MySQL", "Oracle", "PostgreSQL", "SQLite", "Snowflake"])
-# to_sql = st.selectbox("To SQL:", ["MS SQL Server", "MySQL", "Oracle Database", "PostgreSQL", "SQLite", "Snowflake"])
-
-
-
-# # Add a button to trigger the SQL dialect conversion
-# if openai.api_key and st.button("Convert"):
-#     st.write("Converting the SQL Code...")
-#     # Convert the SQL dialect using the OpenAI API
-#     list_of_fields = get_identifiers(sql)
-#     masked_sql, word_map  = sql_masking(list_of_fields, sql)
-#     masked_converted_sql = sql_dialectify(to_sql, masked_sql)
-#     # Display the converted SQL code
-#     st.text_area("Converted SQL Code", masked_converted_sql)
-
-
-
-
-# if openai.api_key and st.button("DeMask", key="5"):
-#     st.write("De mAsking for further processing SQL Code...")
-    
-#     list_of_fields = get_identifiers(sql)
-#     masked_sql, word_map  = sql_masking(list_of_fields, sql)
-#     word_map_decode  = word_map
-
-#      # Dialectify
-#     masked_converted_sql = sql_dialectify(to_sql, masked_sql)
-
-#     # Demask the SQL string
-#     demasked_sql = demasking(word_map_decode, masked_converted_sql)
-
-#     # Print the demasked SQL string
-#     st.code("Encrypted SQL", demasked_sql)
-
-
-# # import streamlit as st
-# # import time
-
-# # progress_text = "Operation in progress. Please wait."
-# # my_bar = st.progress(0, text=progress_text)
-
-# # for percent_complete in range(100):
-# #     time.sleep(0.1)
-# #     my_bar.progress(percent_complete + 1, text=progress_text)
-
-
-
-# # Add _view
-
-
-# # tables = extract_tables(sql)
-# # updated_sql = append_view_to_tables(sql, tables, add_view_suffix)
-
-# # st.write('Updated SQL:\n', updated_sql)
-
-# if st.button("Process SQL",  key="3"): 
-
-#     list_of_fields = get_identifiers(sql)
-#     masked_sql, word_map  = sql_masking(list_of_fields, sql)
-#     word_map_decode  = word_map
-
-#      # Dialectify
-#     masked_converted_sql = sql_dialectify(to_sql, masked_sql)
-
-#     # Demask the SQL string
-#     demasked_sql = demasking(word_map_decode, masked_converted_sql)
-
-#     # Print the demasked SQL string
-#     tables = extract_tables(sql)
-#     updated_sql = append_view_to_tables(demasked_sql, tables, add_view_suffix)
-
-#     st.subheader("Original SQL:")
-#     st.code(sql)
-
-#     st.subheader("Updated SQL:")
-#     st.code(updated_sql)
+if __name__ == '__main__':
+    app()
