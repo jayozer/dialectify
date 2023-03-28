@@ -109,7 +109,8 @@ def sql_masking(identifiers, sql):
 
 def sql_dialectify(to_sql, masked_sql):
     completion = openai.ChatCompletion.create(
-        model="gpt-4",
+        model="gpt-3.5-turbo",
+        max_tokens=1800,
         messages=[
             {"role": "system", "content": 'You are an expert SQL developer that is proficient in MS SQL Server, MySQL, Oracle, PostgreSQL, SQLite, Snowflake SQL dialects.'},
             {"role": "system", "content": 'Only return the converted sql code and do not explain the conversion process.'},
@@ -195,8 +196,8 @@ if st.button("Dialectify"):
    
     updated_sql = append_view_to_tables(demasked_sql, tables, add_view_suffix)
     
-    st.subheader("Original SQL:")
-    st.code(sql)
+    # st.subheader("Original SQL:")
+    # st.code(sql)
     st.subheader("Updated SQL:")
     st.code(updated_sql)
 
