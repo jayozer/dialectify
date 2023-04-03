@@ -38,11 +38,13 @@ def get_identifiers(sql):
     reserved_words = ['TOP', 'SELECT', 'FROM', 'WHERE', 'JOIN', 'LEFT', 'RIGHT', 'INNER', 'OUTER', 'ON', 'GROUP', 'BY', 'HAVING', 'ORDER', 'ASC', 'DESC']
 
     def process_identifier(token, identifier_set):
+        # Get the real name of the token
         identifier_name = token.get_real_name()
+        # If the real name contains a dot, split it on the dot and take the second part
         if '.' in identifier_name:
             identifier_name = identifier_name.split('.')[1]
+        # Add the identifier name to the set
         identifier_set.add(identifier_name)
-
     def process_function_arguments(token, identifier_set):
         if isinstance(token, sqlparse.sql.Identifier):
             process_identifier(token, identifier_set)
@@ -151,13 +153,20 @@ def extract_table_identifiers(token_stream):
                     yield identifier.get_real_name()
 
 
+# def append_view_to_tables(sql, tables, add_view_suffix=False):
+#     updated_sql = sql
+#     for table in tables:
+#         if add_view_suffix:
+#             updated_sql = updated_sql.replace(table, f"{table}_view")
+#         else:
+#             updated_sql = updated_sql.replace(f"{table}_view", table)
+#     return updated_sql
+
 def append_view_to_tables(sql, tables, add_view_suffix=False):
     updated_sql = sql
-    for table in tables:
-        if add_view_suffix:
+    if add_view_suffix:
+        for table in tables:
             updated_sql = updated_sql.replace(table, f"{table}_view")
-        else:
-            updated_sql = updated_sql.replace(f"{table}_view", table)
     return updated_sql
 
 
@@ -173,7 +182,7 @@ def extract_tables(sql):
     return list(table_set)
 
  
-# Append _view
+# Append _view to table names
 add_view_suffix = st.checkbox("Append '_view' to table names")
 
 
