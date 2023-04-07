@@ -115,15 +115,15 @@ st.sidebar.title("Dialectify Land - Where tiny unicorns inside the machine code 
 # Add a selectbox for max_tokens to the sidebar with a text box
 # User can enter the integer value of max_tokens and select it from the dropdown.
 # Also add a note to the sidebar explaining the purpose of max_tokens.
-max_tokens = st.sidebar.selectbox("Enter Max Tokens", [1024, 2048, 3072, 4096, 5120, 6144, 7168, 8192], index=0) #[1024, 2048, 3072, 4096, 5120, 6144, 7168, 8192, 9216, 10240, 11264, 12288, 13312, 14336, 15360, 16384, 17408, 18432, 19456, 20480]
+max_tokens = st.sidebar.selectbox("Enter Max Tokens", [1024, 2048, 3072, 4096, 5120, 6144, 7168, 8192], index=0) 
 
 st.sidebar.markdown("GPT-4 has a maximum token limit of 8,192 tokens (equivalent to ~6000 words), whereas GPT-3.5's 4,000 tokens (equivalent to 3,125 words)")
 
 
 def sql_dialectify (from_sql, to_sql, masked_sql, max_tokens=max_tokens):
     completion = openai.ChatCompletion.create(
-        #model="gpt-4",
-        model="gpt-3.5-turbo",
+        model="gpt-4",
+        #model="gpt-3.5-turbo",
         max_tokens=max_tokens,
         messages=[
             {"role": "system", "content": 'You are an expert SQL developer proficient in Transact-SQL, MySQL, PL/SQL, PL/pgSQL, SQLite, and Snowflake SQL dialects, with a focus on ensuring high accuracy during conversion.'},
@@ -230,7 +230,7 @@ if st.button("Dialectify"):
     # st.subheader("Original SQL:")
     # st.code(sql)
     st.subheader("Updated SQL:")
-    st.code(updated_sql)
+    st.text_area(updated_sql)
 
 
 
