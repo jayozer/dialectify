@@ -27,7 +27,8 @@ st.title("Dialectify SQL")
 # Create the input boxes for the SQL code and the SQL dialects
 openai.api_key = st.text_input("Enter API Key:")
 sql = st.text_area("Enter SQL Code")
-to_sql = st.selectbox("To SQL:", ["MS SQL Server", "MySQL", "Oracle Database", "PostgreSQL", "SQLite", "Snowflake"])
+from_sql = st.selectbox("From SQL:", ["Transact-SQL", "MySQL", "PL/SQL", "PL/pgSQL", "SQLite", "Snowflake"])
+to_sql = st.selectbox("To SQL:", ["Transact-SQL", "MySQL", "PL/SQL", "PL/pgSQL", "SQLite", "Snowflake"])
 
 # Extract fields for masking - identifier_set
 
@@ -108,23 +109,34 @@ def sql_masking(identifiers, sql):
 
 
 # Open Ai piece
+# Create a sidebar in Streamlit
+st.sidebar.title("Dialectify Land - Where tiny unicorns inside the machine code for you")
 
-def sql_dialectify(to_sql, masked_sql):
+# Add a selectbox for max_tokens to the sidebar with a text box
+# User can enter the integer value of max_tokens and select it from the dropdown.
+# Also add a note to the sidebar explaining the purpose of max_tokens.
+max_tokens = st.sidebar.selectbox("Enter Max Tokens", [1024, 2048, 3072, 4096, 5120, 6144, 7168, 8192], index=0) #[1024, 2048, 3072, 4096, 5120, 6144, 7168, 8192, 9216, 10240, 11264, 12288, 13312, 14336, 15360, 16384, 17408, 18432, 19456, 20480]
+
+st.sidebar.markdown("GPT-4 has a maximum token limit of 8,192 tokens (equivalent to ~6000 words), whereas GPT-3.5's 4,000 tokens (equivalent to 3,125 words)")
+
+
+def sql_dialectify (from_sql, to_sql, masked_sql, max_tokens=max_tokens):
     completion = openai.ChatCompletion.create(
+        #model="gpt-4",
         model="gpt-3.5-turbo",
-        max_tokens=1800,
+        max_tokens=max_tokens,
         messages=[
-            {"role": "system", "content": 'You are an expert SQL developer that is proficient in MS SQL Server, MySQL, Oracle, PostgreSQL, SQLite, Snowflake SQL dialects.'},
-            {"role": "system", "content": 'Only return the converted sql code and do not explain the conversion process.'},
-            {"role": "system", "content": 'Check for the correctness of the entered SQL code. And make updates if necessary. List the changes succinctly in the chat.'},
-            {"role": "system", "content": 'Let''s think step by step.'},
-            {"role": "user", "content": f'Detect the dialect of the following SQL code: "{masked_sql}"'},
-            {"role": "system", "content": f'Check and fix errors for the top common SQL syntax mistakes for the detected dialect. List updated parts of the following SQL code: "{masked_sql}"'},
-            {"role": "user", "content": f'Convert the updated SQL code from detected dialect to "{to_sql}": "\n\n{masked_sql}"'}
+            {"role": "system", "content": 'You are an expert SQL developer proficient in Transact-SQL, MySQL, PL/SQL, PL/pgSQL, SQLite, and Snowflake SQL dialects, with a focus on ensuring high accuracy during conversion.'},
+            {"role": "system", "content": 'Your task is to convert a specific SQL script from one dialect to another while maintaining the functionality and integrity of the original script.'},
+            {"role": "system", "content": f'The source SQL dialect is "{from_sql}", and the target SQL dialect is "{to_sql}". Your goal is to perform a precise conversion while addressing any incompatibilities or differences.'},
+            {"role": "system", "content": f'You will identify and address differences in data types and functions between the {from_sql} and {to_sql} dialects. For data types or functions without a direct equivalent, choose the most suitable alternative and include a comment in the converted SQL query explaining the change.'},
+            {"role": "user", "content": f'Please convert the following SQL code from "{from_sql}" to "{to_sql}" while ensuring the highest level of accuracy in maintaining the original functionality: "\n\n{masked_sql}"'},
         ]
     )
     converted_sql = completion.choices[0].message.content
     return converted_sql
+
+
 
 # Demask Converted SQL
 def demasking(word_map, masked_sql):
@@ -159,15 +171,6 @@ def extract_table_identifiers(token_stream):
                     yield identifier.get_real_name()
 
 
-# def append_view_to_tables(sql, tables, add_view_suffix=False):
-#     updated_sql = sql
-#     for table in tables:
-#         if add_view_suffix:
-#             updated_sql = updated_sql.replace(table, f"{table}_view")
-#         else:
-#             updated_sql = updated_sql.replace(f"{table}_view", table)
-#     return updated_sql
-
 def append_view_to_tables(sql, tables, add_view_suffix=False):
     """Append the view suffix to the tables in the SQL.
 
@@ -197,6 +200,9 @@ def extract_tables(sql):
 
     return list(table_set)
 
+
+
+
  
 # Append _view to table names
 add_view_suffix = st.checkbox("Append '_view' to table names")
@@ -213,7 +219,7 @@ if st.button("Dialectify"):
     st.write(f"Converting your SQL Code to {to_sql}...")
     list_of_fields = get_identifiers(sql)
     masked_sql, word_map = sql_masking(list_of_fields, sql)
-    masked_converted_sql = sql_dialectify(to_sql, masked_sql)
+    masked_converted_sql = sql_dialectify(from_sql, to_sql, masked_sql, max_tokens)
 
     demasked_sql = demasking(word_map, masked_converted_sql)
 
