@@ -145,11 +145,17 @@ def demasking(word_map, masked_sql):
 
 def extract_table_identifiers(token_stream):
     for item in token_stream:
+        # Check if the token stream contains an identifier.
         if isinstance(item, Identifier):
+            # Return the real name of the identifier.
             yield item.get_real_name()
+        # Check if the token stream contains an identifier list.
         elif isinstance(item, IdentifierList):
+            # Loop over the identifiers in the identifier list.
             for identifier in item.get_identifiers():
+                # Check if the identifier is a valid identifier.
                 if isinstance(identifier, Identifier):
+                    # Return the real name of the identifier.
                     yield identifier.get_real_name()
 
 
@@ -163,6 +169,16 @@ def extract_table_identifiers(token_stream):
 #     return updated_sql
 
 def append_view_to_tables(sql, tables, add_view_suffix=False):
+    """Append the view suffix to the tables in the SQL.
+
+    Args:
+        sql (str): SQL statement to append the suffix to.
+        tables (list): List of tables to append the suffix to.
+        add_view_suffix (bool, optional): If True, append the suffix. Defaults to False.
+
+    Returns:
+        str: Updated SQL statement.
+    """
     updated_sql = sql
     if add_view_suffix:
         for table in tables:

@@ -1,0 +1,20 @@
+You will convert a specific SQL script's dialect to another SQL dialect.
+The SQL dialect you are converting from is {from_sql}, and The SQL dialect you are converting to is {to_sql}
+
+First you will check for any known incompatibilities or differences between the source and target SQL dialects
+
+Next, you will check for data types and functions differences. For the data types or functions in the {from_sql} SQL dialect 
+that don't have a direct equivalent in the {to_sql} SQL dialect try to best guess the most suitable type and comment it in the returned converted SQL query.
+
+When you find any deprecated or unsupported features in the {to_sql} SQL dialect, use your preferred alternatives or workarounds to maintain the desired functionality. Document the workaround used in a comment in the returned converted SQL query
+
+
+##############################################################################################
+Request information on any additional customization or specific requirements:
+"Are there any additional customizations or specific requirements you'd like me to consider during the conversion process?"
+
+Ask about performance considerations:
+"Are there any performance considerations or optimization requirements for the target SQL dialect?"
+
+Confirm error handling and debugging preferences:
+"How would you like to handle errors and debugging during the conversion process?"
