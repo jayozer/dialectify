@@ -117,7 +117,8 @@ st.sidebar.title("Dialectify SQL")
 max_tokens = st.sidebar.selectbox("Enter Max Tokens", [1024, 2048, 3072, 4096, 5120, 6144, 7168, 8192], index=0) 
 st.sidebar.markdown("GPT-4 has a maximum token limit of 8,192 tokens (equivalent to ~6000 words), whereas GPT-3.5's 4,000 tokens (equivalent to 3,125 words)")
 
-model_choice = st.sidebar.selectbox("Model:", ["gpt-3.5-turbo", "gpt-4"])
+# model_choice = st.sidebar.selectbox("Model:", ["gpt-3.5-turbo", "gpt-4"])
+model_choice = st.sidebar.radio("Model:", ["gpt-3.5-turbo", "gpt-4"])
 temperature = st.sidebar.selectbox("Temperature:", [0.1, 0.2, 0.3, 0.9], index=1)
 
 def sql_dialectify (from_sql, to_sql, masked_sql, max_tokens=max_tokens, model_choice=model_choice, temperature = temperature):
@@ -126,16 +127,15 @@ def sql_dialectify (from_sql, to_sql, masked_sql, max_tokens=max_tokens, model_c
         max_tokens=max_tokens,
         temperature=temperature,
         messages=[
-            {"role": "system", "content": 'Act as CODEX ("COding DEsign eXpert"), an expert coder with proficiency in SQL programming language.'},
-            {"role": "system", "content": 'You are proficient in Transact-SQL, MySQL, PL/SQL, PL/pgSQL, SQLite, and Snowflake SQL dialects, with a focus on high accuracy dialect to dialect conversions.'},
-            {"role": "system", "content": 'Your task is to convert a specific SQL script from one SQL dialect to another SQL dialect while maintaining the functionality and integrity of the original script.'},
-            {"role": "system", "content": f'The source SQL dialect is "{from_sql}", and the target SQL dialect is "{to_sql}". Your goal is to perform a precise SQL dialect conversion while addressing any incompatibilities or differences.'},
-            {"role": "system", "content": 'Always follow the coding best practices by writing clean, modular code with proper security measures and leveraging design patterns.'},
-            {"role": "system", "content": f'You will identify and address differences in data types and functions between the {from_sql} and {to_sql} dialects. For data types or functions without a direct equivalent, choose the most suitable alternative'},
-            {"role": "system", "content": 'You will return your answers in two sections. In the first section you will return the converted sql query in a code block. You will title this section as "Converted SQL: ".'},
-            {"role": "system", "content": 'In the second section you will return Any comments and the explanations of the changes with bulled points. You will title this section as "Conversion details: ".'},
-            {"role": "user", "content": f'Convert the following SQL code from "{from_sql}" to "{to_sql}" while ensuring the highest level of accuracy in maintaining the original functionality: "\n\n{masked_sql}"'},
-        ]
+            {"role": "system", "content": 'Act as CODEX ("COding DEsign eXpert"), an AI expert in SQL programming languages, focusing on accurate SQL dialect conversions.'},
+            {"role": "system", "content": 'You are proficient in various SQL dialects, including Transact-SQL, MySQL, PL/SQL, PL/pgSQL, SQLite, and Snowflake SQL. Your expertise lies in converting scripts between these dialects while maintaining the original functionality and integrity.'},
+            {"role": "system", "content": 'Your task is to convert a given SQL script from one SQL dialect to another, ensuring that the converted script retains the same functionality and addresses any incompatibilities or differences between the dialects.'},
+            {"role": "system", "content": f'The source SQL dialect is "{from_sql}", and the target SQL dialect is "{to_sql}". Perform an accurate conversion that addresses data types, functions, and syntax differences between the two dialects.'},
+            {"role": "system", "content": 'Adhere to coding best practices by writing clean, modular code that includes proper security measures and follows established design patterns.'},
+            {"role": "system", "content": f'Identify and address differences in data types and functions between the {from_sql} and {to_sql} dialects. For data types or functions without a direct equivalent, select the most suitable alternative while maintaining the original functionality.'},
+            {"role": "system", "content": 'Present your solution in two sections. In the first section, provide the converted SQL query in a code block, titled "### Converted SQL:". In the second section, include any comments and explanations of the changes as bullet points, titled "### Conversion details:".'},
+            {"role": "user", "content": f'Accurately convert the following SQL code from "{from_sql}" to "{to_sql}", maintaining the original functionality and addressing any incompatibilities or differences: "\n\n{masked_sql}"'},
+]
     )
     converted_sql = completion.choices[0].message.content
     return converted_sql
@@ -214,10 +214,22 @@ def extract_tables(sql):
 
 # Convert SQL dialect
 if st.button("Mask"):
+#if sql:  
     st.write("Encrpyting your SQL Code...")
     list_of_fields = get_identifiers(sql)
     masked_sql, word_map = sql_masking(list_of_fields, sql)
     st.code(masked_sql)
+
+# st.write("Enter text into field 1 - this will hide field 2")
+# text_field_1 = st.text_input("Field 1")
+
+# if not text_field_1:
+#     st.write("Enter text into field 2 - this will be hidden if field 1 has text")
+#     text_field_2 = st.text_input("Field 2")
+
+# if not sql:
+#     st.write("Encrpyting your SQL Code...")
+#     text_field_2 = st.text_input("Field 2")
 
 if st.button("Dialectify"):
     st.write(f"Converting your SQL Code from {from_sql} to {to_sql}...")
@@ -239,6 +251,8 @@ if st.button("Dialectify"):
     st.code(formatted_sql, language="sql")
     st.write("Done! This was fun, now give me another one!")
     
+
+
     
 
 
