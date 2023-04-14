@@ -215,7 +215,7 @@ if st.button("Extract tables", use_container_width=True):
 
     
 
-#st.divider()
+st.divider()
 # From and To sql dialect choices
 from_sql = st.selectbox("From SQL:", ["Transact-SQL", "MySQL", "PL/SQL", "PL/pgSQL", "SQLite", "Snowflake"])
 to_sql = st.selectbox("To SQL:", ["Transact-SQL", "MySQL", "PL/SQL", "PL/pgSQL", "SQLite", "Snowflake"])
