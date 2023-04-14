@@ -1,5 +1,6 @@
 import re
 import os
+import pandas as pd
 import streamlit as st
 import openai
 from dotenv import load_dotenv
@@ -22,6 +23,8 @@ masked_converted_sql = ""
 
 # Set the app title
 st.title("Dialectify SQL")
+st.markdown("#### Switch between SQL dialects")
+st.markdown("###### Dialectify, the pro-dialect-ic magician, prestidigitates your pesky SQL scripts, transforming them into the sophisticated language of another platform. Watch in awe as it masterfully masks your secret table and field names, or even bestows the mythical '_view' appellation on your warehousing denizens. Data dalliances have never been so versatile and secure!")
 
 # Create the input boxes for the SQL code and the SQL dialects
 openai.api_key = st.text_input("Enter API Key:")
@@ -107,19 +110,19 @@ def sql_masking(identifiers, sql):
 
 # Open Ai piece
 # Create a sidebar in Streamlit
-st.sidebar.title("Dialectify SQL")
+st.sidebar.title("Select Model & Temperature")
 
-# Add a selectbox for max_tokens to the sidebar with a text box
-# User can enter the integer value of max_tokens and select it from the dropdown.
-# Also add a note to the sidebar explaining the purpose of max_tokens.
-max_tokens = st.sidebar.selectbox("Enter Max Tokens", [1024, 2048, 3072, 4096, 5120, 6144, 7168, 8192], index=0) 
-st.sidebar.markdown("GPT-4 has a maximum token limit of 8,192 tokens (equivalent to ~6000 words), whereas GPT-3.5's 4,000 tokens (equivalent to 3,125 words)")
 
 # model_choice = st.sidebar.selectbox("Model:", ["gpt-3.5-turbo", "gpt-4"])
 model_choice = st.sidebar.radio("Model:", ["gpt-3.5-turbo", "gpt-4"])
+
+#max_tokens = st.sidebar.selectbox("Enter Max Tokens", [1024, 2048, 3072, 4096, 5120, 6144, 7168, 8192], index=0) 
+st.sidebar.markdown("Models are set to return max allowed tokens. \n\n (max allowed tokens = inputted tokens + returned tokens) \n\n GPT-4 has a maximum token limit of 8,192 tokens (equivalent to ~6000 words), whereas GPT-3.5's 4,000 tokens (equivalent to 3,125 words).")
+
+
 temperature = st.sidebar.selectbox("Temperature:", [0.1, 0.2, 0.3, 0.9], index=1)
 
-def sql_dialectify(from_sql, to_sql, original_sql, max_tokens=max_tokens, model_choice=model_choice, temperature=temperature, mask_fields=False, identifiers=None):
+def sql_dialectify(from_sql, to_sql, original_sql, model_choice=model_choice, temperature=temperature, mask_fields=False, identifiers=None):
     # If mask_fields is True, mask the fields using the provided sql_masking function
     if mask_fields and identifiers:
         masked_sql, word_map = sql_masking(identifiers, original_sql)
@@ -128,7 +131,6 @@ def sql_dialectify(from_sql, to_sql, original_sql, max_tokens=max_tokens, model_
 
     completion = openai.ChatCompletion.create(
         model=model_choice,
-        max_tokens=max_tokens,
         temperature=temperature,
         messages=[
            {"role": "system", "content": 'Act as CODEX ("COding DEsign eXpert"), an expert coder with proficiency in SQL programming language.'},
@@ -136,9 +138,10 @@ def sql_dialectify(from_sql, to_sql, original_sql, max_tokens=max_tokens, model_
             {"role": "system", "content": 'Your task is to convert a specific SQL script from one SQL dialect to another SQL dialect while maintaining the functionality and integrity of the original script.'},
             {"role": "system", "content": f'The source SQL dialect is "{from_sql}", and the target SQL dialect is "{to_sql}". Your goal is to perform a precise SQL dialect conversion while addressing any incompatibilities or differences.'},
             {"role": "system", "content": 'Always follow the coding best practices by writing clean, modular code with proper security measures and leveraging design patterns.'},
+            {"role": "system", "content": f'Let''s think step by step. First, you will identify the differences between the {from_sql} and {to_sql} dialects. Then, you will convert the SQL code from {from_sql} to {to_sql} while ensuring the highest level of accuracy in maintaining the original functionality.'},
             {"role": "system", "content": f'You will identify and address differences in data types and functions between the {from_sql} and {to_sql} dialects. For data types or functions without a direct equivalent, choose the most suitable alternative'},
-            {"role": "system", "content": 'You will return your answers in two sections. In the first section you will return the converted sql query in a code block. You will title this section as "\n ### Converted SQL: ".'},
-            {"role": "system", "content": 'In the second section you will return Any comments and the explanations of the changes with bulled points. You will title this section as "### Conversion details: ".'},
+            {"role": "system", "content": 'You will return your answers in two sections. In the first section you will return the converted sql query in a code block and you will add a semi colon (;) at the end of the query if it was not inputted. You will title this section as "\n #Converted SQL: ".'},
+            {"role": "system", "content": 'In the second section you will return any comments and the explanations of the changes in bulled points. You will title this section as "\n List of changes: ".'},
             {"role": "user", "content": f'Convert the following SQL code from "{from_sql}" to "{to_sql}" while ensuring the highest level of accuracy in maintaining the original functionality: "\n\n{masked_sql}"'},
         
         ]
@@ -200,12 +203,19 @@ def tables_in_query(sql_str):
 # Extract tables for db views
 if st.button("Extract tables", use_container_width=True):
     # Extract tables from SQL code
-    st.write(f"Here are the table name. Check if the view definitions already exist in the db...")
+    st.write(f"Here are the table names. Check if the view definitions already exist in the db...")
     tables = tables_in_query(sql)
 
-    # Display tables
-    st.code(tables)
+    # Display tables in a data frame but do not display the index, remove the number on the site and make the column name nothing
+    df_of_tables = pd.DataFrame(list(tables), columns=[''])
+    df_of_tables.index.name = ''
 
+    st.code(df_of_tables)
+    
+
+    
+
+#st.divider()
 # From and To sql dialect choices
 from_sql = st.selectbox("From SQL:", ["Transact-SQL", "MySQL", "PL/SQL", "PL/pgSQL", "SQLite", "Snowflake"])
 to_sql = st.selectbox("To SQL:", ["Transact-SQL", "MySQL", "PL/SQL", "PL/pgSQL", "SQLite", "Snowflake"])
@@ -215,15 +225,32 @@ mask_fields = st.checkbox("Mask all fields including table/view names before sen
 # Append _view to table names
 add_view_suffix = st.checkbox ("Append '_view' to table names after the conversion")
 
-if st.button("Dialectify"):
+if st.button("Dialectify", use_container_width=True):
     st.write(f"Converting your SQL Code from {from_sql} to {to_sql}...")
-    converted_sql = sql_dialectify(from_sql, to_sql, sql, max_tokens, model_choice, temperature, mask_fields)
-    st.subheader("Updated SQL:")
+    converted_sql = sql_dialectify(from_sql, to_sql, sql, model_choice, temperature, mask_fields)
+    st.subheader(f'Your SQL code is converted from {from_sql} to {to_sql}. Validate the output!')
+    
+    # Formatting the SQL code
     formatted_sql = sqlparse.format(converted_sql, reindent=True, keyword_case='upper')
+   
+    #Add view suffix to table names if the property is checked
     if add_view_suffix:
         tables = tables_in_query(formatted_sql)
         for table in tables:
-            formatted_sql = formatted_sql.replace(table, f"{table}_view")
-    st.code(formatted_sql, language="sql")
-    st.write(f'Your SQL code is converted from {from_sql} to {to_sql}. Validate the output!')
+            formatted_sql = formatted_sql.replace(table, f"{table}_VIEW")
+    # display
+    st.code(formatted_sql.split("; ")[-0], language="sql")
+    def bulleted_list(text): 
+        items = text.split("-")
+        result = ""
+        for item in items:
+            if item.strip():
+                result += f"- {item.strip()}\n"
+        return result
+    details=formatted_sql.split("; ")[-1]
+    formatted_text = bulleted_list(details)
+    st.text(formatted_text)
+
+
+    
     
