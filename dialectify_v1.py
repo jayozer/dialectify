@@ -140,7 +140,7 @@ def sql_dialectify(from_sql, to_sql, original_sql, model_choice=model_choice, te
             {"role": "system", "content": 'Always follow the coding best practices by writing clean, modular code with proper security measures and leveraging design patterns.'},
             {"role": "system", "content": f'Let''s think step by step. First, you will identify the differences between the {from_sql} and {to_sql} dialects. Then, you will convert the SQL code from {from_sql} to {to_sql} while ensuring the highest level of accuracy in maintaining the original functionality.'},
             {"role": "system", "content": f'You will identify and address differences in data types and functions between the {from_sql} and {to_sql} dialects. For data types or functions without a direct equivalent, choose the most suitable alternative'},
-            {"role": "system", "content": 'You will return your answers in two sections. In the first section you will return the converted sql query in a code block and you will add a semi colon (;) at the end of the query if it was not inputted. You will title this section as "\n #Converted SQL: ".'},
+            {"role": "system", "content": 'You will return your answers in two sections. In the first section you will return the converted sql query in a code block and you will add a semi colon (;) at the end of the query if it was not inputted. You will title this section as "\n # Converted SQL: ".'},
             {"role": "system", "content": 'In the second section you will return any comments and the explanations of the changes in bulled points. You will title this section as "\n List of changes: ".'},
             {"role": "user", "content": f'Convert the following SQL code from "{from_sql}" to "{to_sql}" while ensuring the highest level of accuracy in maintaining the original functionality: "\n\n{masked_sql}"'},
         
@@ -230,8 +230,14 @@ if st.button("Dialectify", use_container_width=True):
     converted_sql = sql_dialectify(from_sql, to_sql, sql, model_choice, temperature, mask_fields)
     st.subheader(f'Your SQL code is converted from {from_sql} to {to_sql}. Validate the output!')
     
+
+    # st.code(converted_sql.split("; ")[0], language="sql")
+    # st.code(converted_sql.split("; ")[-1], language="sql")
+    
     # Formatting the SQL code
+
     formatted_sql = sqlparse.format(converted_sql, reindent=True, keyword_case='upper')
+    st.code(converted_sql.split("; ")[0], language="sql")
    
     #Add view suffix to table names if the property is checked
     if add_view_suffix:
