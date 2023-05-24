@@ -131,7 +131,7 @@ def sql_dialectify(from_sql, to_sql, original_sql, model_choice=model_choice, te
     else:
         masked_sql = original_sql
 
-    completion = openai.ChatCompletion.create(
+    response = openai.ChatCompletion.create(
         model=model_choice,
         temperature=temperature,
 
@@ -151,7 +151,7 @@ def sql_dialectify(from_sql, to_sql, original_sql, model_choice=model_choice, te
 
     )
 
-    converted_sql = completion.choices[0].message.content
+    converted_sql = response.choices[0].message.content
 
     # If mask_fields is True, replace the masked words with the original identifiers
     if mask_fields and identifiers:
