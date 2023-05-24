@@ -13,6 +13,7 @@ from sqlparse.sql import IdentifierList, Identifier
 from sqlparse.tokens import Keyword, DML, Name
 
 import time
+# from tqdm import tqdm
 
 #openai.api_key = os.getenv('OPENAI_API_KEY')
 
@@ -108,13 +109,11 @@ def sql_masking(identifiers, sql):
     return sql, word_map
 
 
-# Open Ai piece
 # Create a sidebar in Streamlit
 st.sidebar.title("Select Model & Temperature")
 
 
-# model_choice = st.sidebar.selectbox("Model:", ["gpt-3.5-turbo", "gpt-4"])
-model_choice = st.sidebar.radio("Model:", ["gpt-3.5-turbo", "gpt-4"])
+model_choice = st.sidebar.radio("Model:", ["gpt-4", "gpt-3.5-turbo"])
 
 #max_tokens = st.sidebar.selectbox("Enter Max Tokens", [1024, 2048, 3072, 4096, 5120, 6144, 7168, 8192], index=0) 
 st.sidebar.markdown("Models are set to return max allowed tokens. \n\n (max allowed tokens = inputted tokens + returned tokens) \n\n GPT-4 has a maximum token limit of 8,192 tokens (equivalent to ~6000 words), whereas GPT-3.5's 4,000 tokens (equivalent to 3,125 words).")
@@ -123,6 +122,9 @@ st.sidebar.markdown("Models are set to return max allowed tokens. \n\n (max allo
 temperature = st.sidebar.selectbox("Temperature:", [0, 0.1, 0.2, 0.3, 0.9], index=0)
 
 def sql_dialectify(from_sql, to_sql, original_sql, model_choice=model_choice, temperature=temperature, mask_fields=False, identifiers=None):
+    if from_sql == to_sql:
+        return "Pick a different dialect then the original plz"
+    word_map = {}  # Initialize word_map
     # If mask_fields is True, mask the fields using the provided sql_masking function
     if mask_fields and identifiers:
         masked_sql, word_map = sql_masking(identifiers, original_sql)
@@ -155,23 +157,12 @@ def sql_dialectify(from_sql, to_sql, original_sql, model_choice=model_choice, te
     if mask_fields and identifiers:
         for original, masked in word_map.items():
             converted_sql = converted_sql.replace(masked, original)
+    # # Use tqdm to display progress bar
+    # for i in tqdm(range(100)):
+    #     pass
 
     return converted_sql
 
-# # Demask Converted SQL
-# def demasking(word_map, masked_sql):
-#     """
-#     This function takes in a word map and a masked SQL string as input and replaces the masked words with their original words.
-#     """
-#     demasked_sql = masked_sql
-
-#     # Loop through each key-value pair in the word map
-#     for original_word, masked_word in word_map.items():
-#         # Replace the masked word with the original word in the SQL string
-#         demasked_sql = re.sub(r'\b{}\b'.format(masked_word), original_word, demasked_sql)
-    
-#     # Return the demasked SQL string
-#     return demasked_sql
 
 # get the list of tables in a query
 #@st.cache_data
@@ -214,11 +205,12 @@ if st.button("Extract tables", use_container_width=True):
     df_of_tables = pd.DataFrame(list(tables), columns=[''])
     df_of_tables.index.name = ''
 
-    st.code(df_of_tables)
-    
+    # Save the data frame in the session state
+    st.session_state.table_df = df_of_tables
 
+    # Display the data frame
+    st.table(df_of_tables)
     
-
 st.divider()
 # From and To sql dialect choices
 from_sql = st.selectbox("From SQL:", ["Transact-SQL", "MySQL", "PL/SQL", "PL/pgSQL", "SQLite", "Snowflake"])
@@ -229,42 +221,18 @@ mask_fields = st.checkbox("Mask all fields including table/view names before sen
 # Append _view to table names
 add_view_suffix = st.checkbox ("Append '_view' to table names after the conversion")
 
+
 if st.button("Dialectify", use_container_width=True):
-    st.write(f"Converting your SQL Code from {from_sql} to {to_sql}...")
-    converted_sql = sql_dialectify(from_sql, to_sql, sql, model_choice, temperature, mask_fields)
-    st.subheader(f'Your SQL code is converted from {from_sql} to {to_sql}. Validate the output!')
-    
+    with st.spinner(f"Converting SQL code from {from_sql} to {to_sql}..."):      
+        converted_sql = sql_dialectify(from_sql, to_sql, sql, model_choice, temperature, mask_fields)
 
-    # st.code(converted_sql.split("; ")[0], language="sql")
-    # st.code(converted_sql.split("; ")[-1], language="sql")
-    # code = converted_sql.strip()
-    # if code.startswith("```") and code.endswith("```"): 
-    #     new_sql = code[3:-3]
-    #     st.code(new_sql)
-    # Formatting the SQL code
-
-    # formatted_sql = sqlparse.format(converted_sql, reindent=True, keyword_case='upper')
-    # st.code(converted_sql.split("; ")[0], language="sql")
-   
-    #Add view suffix to table names if the property is checked
-    if add_view_suffix:
-        tables = tables_in_query(converted_sql)
-        for table in tables:
-            converted_sql = converted_sql.replace(table, f"{table}_VIEW")
-    # display
-    # st.code(formatted_sql.split("; ")[-0], language="sql")
+        #Add view suffix to table names if the property is checked
+        if add_view_suffix:
+            tables = tables_in_query(converted_sql)
+            for table in tables:
+                converted_sql = converted_sql.replace(table, f"{table}_VIEW")
+            st.subheader(f'Your SQL code is converted from {from_sql} to {to_sql}. Validate the output!')
     st.code(converted_sql)
-    # def bulleted_list(text): 
-    #     items = text.split("-")
-    #     result = ""
-    #     for item in items:
-    #         if item.strip():
-    #             result += f"- {item.strip()}\n"
-    #     return result
-    # details=formatted_sql.split("; ")[-1]
-    # formatted_text = bulleted_list(details)
-    # st.text(formatted_text)
-
-
-    
+   
+   
     
