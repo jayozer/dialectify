@@ -4,3 +4,4 @@ venv_dialectify
 dialectify_sql_v01.py
 dialectify_sql_v02.py
 dialectify_sql_v03.py
+.streamlit/secrets.toml
