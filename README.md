@@ -9,3 +9,4 @@ Convert SQL code from one SQL dialect to another using ChatGPT API and Streamlit
 - Add _VIEW and capitalize table names only. Field names should be lower case
 - Add Sidebar with model, info and temperature settings
 
+Link to the app: https://dialectifysql.streamlit.app/
