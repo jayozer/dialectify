@@ -113,7 +113,7 @@ def sql_masking(identifiers, sql):
 st.sidebar.title("Select Model & Temperature")
 
 
-model_choice = st.sidebar.radio("Model:", ["gpt-4", "gpt-4-1106-preview", "gpt-3.5-turbo"])
+model_choice = st.sidebar.radio("Model:", ["gpt-4", "gpt-3.5-turbo"])
 
 #max_tokens = st.sidebar.selectbox("Enter Max Tokens", [1024, 2048, 3072, 4096, 5120, 6144, 7168, 8192], index=0) 
 st.sidebar.markdown("Models are set to return max allowed tokens. \n\n (max allowed tokens = inputted tokens + returned tokens) \n\n GPT-4 has a maximum token limit of 8,192 tokens (equivalent to ~6000 words), whereas GPT-3.5's 4,000 tokens (equivalent to 3,125 words).")
